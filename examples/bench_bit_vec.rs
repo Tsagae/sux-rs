@@ -35,6 +35,17 @@ pub fn main() -> Result<()> {
     let mut a = BitVec::new(args.len);
     let mut pl = ProgressLogger::default();
 
+    let mut duration_sum = 0;
+    pl.start("Testing no rayon fill");
+    for _ in 0..args.repeats {
+        let start = SystemTime::now();
+        black_box(a.fill_no_rayon(true));
+        let end = SystemTime::now();
+        duration_sum += end.duration_since(start)?.as_micros();
+    }
+    pl.done_with_count(args.repeats);
+    eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+
     let mut iter_size: usize = 1;
     while iter_size <= args.min_len_iter {
         let mut duration_sum = 0;
@@ -49,17 +60,6 @@ pub fn main() -> Result<()> {
         eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
         iter_size *= 10;
     }
-
-    let mut duration_sum = 0;
-    pl.start("Testing no rayon fill");
-    for _ in 0..args.repeats {
-        let start = SystemTime::now();
-        black_box(a.fill_no_rayon(true));
-        let end = SystemTime::now();
-        duration_sum += end.duration_since(start)?.as_micros();
-    }
-    pl.done_with_count(args.repeats);
-    eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
 
     Ok(())
 }
