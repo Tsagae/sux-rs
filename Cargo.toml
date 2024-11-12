@@ -46,7 +46,6 @@ maligned = "0.2.1"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [features]
-default = ["rayon"]
 cli = ["dep:clap"] # Build the binary utils
 fuzz = ["dep:arbitrary"]
 slow_tests = [] # Run slow tests (use --release)
