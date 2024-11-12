@@ -23,6 +23,8 @@ struct Args {
     /// The number of test repetitions.
     #[arg(short, long, default_value = "500")]
     repeats: usize,
+    #[arg(short, long, default_value = "100")]
+    min_block_size: usize,
 }
 
 pub fn main() -> Result<()> {
@@ -46,7 +48,7 @@ pub fn main() -> Result<()> {
     pl.done_with_count(args.repeats);
     eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
 
-    let mut iter_size: usize = 1;
+    let mut iter_size= args.min_block_size;
     while iter_size <= args.block_size {
         let mut duration_sum = 0;
         pl.start(&format!("Testing iter size {iter_size} fill"));
