@@ -17,7 +17,7 @@ use sux::prelude::*;
 #[command(about = "Benchmarks bit_vec", long_about = None)]
 struct Args {
     #[arg(short, long, default_value = "100000")]
-    min_len_iter: usize,
+    block_size: usize,
     #[arg(short, long, default_value = "1000000000")]
     len: usize,
     /// The number of test repetitions.
@@ -35,21 +35,6 @@ pub fn main() -> Result<()> {
     let mut a = BitVec::new(args.len);
     let mut pl = ProgressLogger::default();
 
-    let mut iter_size: usize = 1;
-    while iter_size <= args.min_len_iter {
-        let mut duration_sum = 0;
-        pl.start(&format!("Testing iter size {iter_size} fill"));
-        for _ in 0..args.repeats {
-            let start = SystemTime::now();
-            black_box(a.fill_min_len_iter(true, iter_size));
-            let end = SystemTime::now();
-            duration_sum += end.duration_since(start)?.as_micros();
-        }
-        pl.done_with_count(args.repeats);
-        eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
-        iter_size *= 10;
-    }
-
     let mut duration_sum = 0;
     pl.start("Testing no rayon fill");
     for _ in 0..args.repeats {
@@ -60,6 +45,21 @@ pub fn main() -> Result<()> {
     }
     pl.done_with_count(args.repeats);
     eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+
+    let mut iter_size: usize = 1;
+    while iter_size <= args.block_size {
+        let mut duration_sum = 0;
+        pl.start(&format!("Testing iter size {iter_size} fill"));
+        for _ in 0..args.repeats {
+            let start = SystemTime::now();
+            black_box(a.fill_by_uniform_blocks(true, iter_size));
+            let end = SystemTime::now();
+            duration_sum += end.duration_since(start)?.as_micros();
+        }
+        pl.done_with_count(args.repeats);
+        eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+        iter_size *= 10;
+    }
 
     Ok(())
 }

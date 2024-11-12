@@ -272,7 +272,7 @@ impl<B: AsRef<[usize]> + AsMut<[usize]>> BitVec<B> {
     /// Set all bits to the given value.
     ///
     /// If the feature "rayon" is enabled, this method is computed in parallel.
-    pub fn fill_min_len_iter(&mut self, value: bool, min_len_iter: usize) {
+    pub fn fill_by_uniform_blocks(&mut self, value: bool, block_size: usize) {
         let full_words = self.len() / BITS;
         let residual = self.len % BITS;
         let bits = self.bits.as_mut();
@@ -282,7 +282,7 @@ impl<B: AsRef<[usize]> + AsMut<[usize]>> BitVec<B> {
         {
             bits[..full_words]
                 .par_iter_mut()
-                .with_min_len(min_len_iter)
+                .by_uniform_blocks(block_size)
                 .for_each(|x| *x = word_value);
         }
 
