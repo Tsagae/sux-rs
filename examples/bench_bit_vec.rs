@@ -7,7 +7,6 @@
 use anyhow::Result;
 use clap::Parser;
 use dsi_progress_logger::*;
-use std::fmt::Display;
 use std::hint::black_box;
 use std::time::SystemTime;
 use sux::prelude::*;

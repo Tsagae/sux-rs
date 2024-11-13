@@ -76,7 +76,7 @@ use epserde::*;
 use mem_dbg::*;
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
-use std::{ops::Index, sync::atomic::{AtomicUsize, Ordering}, thread};
+use std::{ops::Index, sync::atomic::{AtomicUsize, Ordering}};
 
 use crate::traits::rank_sel::*;
 
