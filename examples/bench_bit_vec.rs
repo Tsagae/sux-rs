@@ -43,6 +43,17 @@ pub fn main() -> Result<()> {
     let mut pl = ProgressLogger::default();
 
     let mut duration_sum = 0;
+    pl.start("Testing default rayon fill");
+    for _ in 0..args.repeats {
+        let start = SystemTime::now();
+        black_box(a.fill(true));
+        let end = SystemTime::now();
+        duration_sum += end.duration_since(start)?.as_micros();
+    }
+    pl.done_with_count(args.repeats);
+    eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+
+    let mut duration_sum = 0;
     pl.start("Testing no rayon fill");
     for _ in 0..args.repeats {
         let start = SystemTime::now();
