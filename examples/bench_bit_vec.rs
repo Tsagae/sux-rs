@@ -56,7 +56,7 @@ pub fn main() -> Result<()> {
     let mut min_len_iter= args.start_min_len_iter;
     while min_len_iter <= args.stop_min_len_iter {
         let mut duration_sum = 0;
-        pl.start(&format!("Testing iter size {min_len_iter} fill"));
+        pl.start(&format!("Testing min_len: {min_len_iter} fill"));
         for _ in 0..args.repeats {
             let start = SystemTime::now();
             black_box(a.fill_min_len_iter(true, min_len_iter));
@@ -71,7 +71,7 @@ pub fn main() -> Result<()> {
     let mut block_size = args.start_block_size;
     while block_size <= args.stop_block_size {
         let mut duration_sum = 0;
-        pl.start(&format!("Testing iter size {block_size} fill"));
+        pl.start(&format!("Testing block size: {block_size} fill"));
         for _ in 0..args.repeats {
             let start = SystemTime::now();
             black_box(a.fill_by_uniform_blocks(true, block_size));
