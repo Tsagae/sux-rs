@@ -55,7 +55,7 @@ pub fn main() -> Result<()> {
 
     let mut min_len_iter = args.start_min_len_iter;
     while min_len_iter <= args.stop_min_len_iter {
-        pl.start(&format!("Testing min_len: {min_len_iter} fill"));
+        pl.start(format!("Testing min_len: {min_len_iter} fill"));
         let duration = repeat(
             || black_box(a.fill_min_len_iter(true, min_len_iter)),
             args.repeats,
@@ -67,7 +67,7 @@ pub fn main() -> Result<()> {
 
     let mut block_size = args.start_block_size;
     while block_size <= args.stop_block_size {
-        pl.start(&format!("Testing block size: {block_size} fill"));
+        pl.start(format!("Testing block size: {block_size} fill"));
         let duration = repeat(
             || black_box(a.fill_by_uniform_blocks(true, block_size)),
             args.repeats,
@@ -82,12 +82,12 @@ pub fn main() -> Result<()> {
         a = BitVec::new(vec_size);
         info!("------------ vec size: {vec_size} ------------");
 
-        pl.start(&format!("Testing no rayon fill vec size: {vec_size}"));
+        pl.start(format!("Testing no rayon fill vec size: {vec_size}"));
         let duration = repeat(|| black_box(a.fill_no_rayon(true)), args.repeats);
         pl.done_with_count(args.repeats);
         info!("avg: {}µs of {} runs\n", duration, args.repeats);
 
-        pl.start(&format!("Testing rayon fill vec size: {vec_size}"));
+        pl.start(format!("Testing rayon fill vec size: {vec_size}"));
         let duration = repeat(|| black_box(a.fill(true)), args.repeats);
 
         pl.done_with_count(args.repeats);
