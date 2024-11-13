@@ -9,6 +9,7 @@ use clap::Parser;
 use dsi_progress_logger::*;
 use std::hint::black_box;
 use std::time::SystemTime;
+use log::info;
 use sux::prelude::*;
 
 
@@ -20,7 +21,7 @@ struct Args {
     #[arg(short, long, default_value = "100000")]
     stop_min_len_iter: usize,
 
-    #[arg(short, long, default_value = "10000")]
+    #[arg(short, long, default_value = "100000")]
     start_block_size: usize,
     #[arg(short, long, default_value = "1000000000")]
     stop_block_size: usize,
@@ -51,7 +52,7 @@ pub fn main() -> Result<()> {
         duration_sum += end.duration_since(start)?.as_micros();
     }
     pl.done_with_count(args.repeats);
-    eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
+    info!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
 
     let mut duration_sum = 0;
     pl.start("Testing no rayon fill");
@@ -62,7 +63,7 @@ pub fn main() -> Result<()> {
         duration_sum += end.duration_since(start)?.as_micros();
     }
     pl.done_with_count(args.repeats);
-    eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
+    info!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
 
     let mut min_len_iter= args.start_min_len_iter;
     while min_len_iter <= args.stop_min_len_iter {
@@ -75,7 +76,7 @@ pub fn main() -> Result<()> {
             duration_sum += end.duration_since(start)?.as_micros();
         }
         pl.done_with_count(args.repeats);
-        eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
+        info!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
         min_len_iter *= 10;
     }
 
@@ -90,9 +91,39 @@ pub fn main() -> Result<()> {
             duration_sum += end.duration_since(start)?.as_micros();
         }
         pl.done_with_count(args.repeats);
-        eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
+        info!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
         block_size *= 10;
     }
+
+    let mut vec_size = 1;
+    while vec_size <= args.len {
+        a = BitVec::new(vec_size);
+        info!("------------ vec size: {vec_size} ------------");
+
+        let mut duration_sum = 0;
+        pl.start(&format!("Testing no rayon fill vec size: {vec_size}"));
+        for _ in 0..args.repeats {
+            let start = SystemTime::now();
+            black_box(a.fill_no_rayon(true));
+            let end = SystemTime::now();
+            duration_sum += end.duration_since(start)?.as_micros();
+        }
+        pl.done_with_count(args.repeats);
+        info!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
+
+        let mut duration_sum = 0;
+        pl.start(&format!("Testing rayon fill vec size: {vec_size}"));
+        for _ in 0..args.repeats {
+            let start = SystemTime::now();
+            black_box(a.fill(true));
+            let end = SystemTime::now();
+            duration_sum += end.duration_since(start)?.as_micros();
+        }
+        pl.done_with_count(args.repeats);
+        info!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
+        vec_size *= 10;
+    }
+
 
     Ok(())
 }
