@@ -76,10 +76,7 @@ use epserde::*;
 use mem_dbg::*;
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
-use std::{
-    ops::Index,
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use std::{ops::Index, sync::atomic::{AtomicUsize, Ordering}, thread};
 
 use crate::traits::rank_sel::*;
 
@@ -283,6 +280,34 @@ impl<B: AsRef<[usize]> + AsMut<[usize]>> BitVec<B> {
             bits[..full_words]
                 .par_iter_mut()
                 .with_min_len(min_len_iter)
+                .for_each(|x| *x = word_value);
+        }
+
+        #[cfg(not(feature = "rayon"))]
+        {
+            bits[..full_words].iter_mut().for_each(|x| *x = word_value);
+        }
+
+        if residual != 0 {
+            let mask = (1 << residual) - 1;
+            bits[full_words] = (bits[full_words] & !mask) | (word_value & mask);
+        }
+    }
+
+    /// Set all bits to the given value.
+    ///
+    /// If the feature "rayon" is enabled, this method is computed in parallel.
+    pub fn fill_by_uniform_blocks(&mut self, value: bool, by_uniform_blocks: usize) {
+        let full_words = self.len() / BITS;
+        let residual = self.len % BITS;
+        let bits = self.bits.as_mut();
+        let word_value = if value { !0 } else { 0 };
+
+        #[cfg(feature = "rayon")]
+        {
+            bits[..full_words]
+                .par_iter_mut()
+                .by_uniform_blocks(by_uniform_blocks)
                 .for_each(|x| *x = word_value);
         }
 
