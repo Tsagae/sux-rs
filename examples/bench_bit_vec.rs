@@ -51,7 +51,7 @@ pub fn main() -> Result<()> {
         duration_sum += end.duration_since(start)?.as_micros();
     }
     pl.done_with_count(args.repeats);
-    eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+    eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
 
     let mut duration_sum = 0;
     pl.start("Testing no rayon fill");
@@ -62,7 +62,7 @@ pub fn main() -> Result<()> {
         duration_sum += end.duration_since(start)?.as_micros();
     }
     pl.done_with_count(args.repeats);
-    eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+    eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
 
     let mut min_len_iter= args.start_min_len_iter;
     while min_len_iter <= args.stop_min_len_iter {
@@ -75,7 +75,7 @@ pub fn main() -> Result<()> {
             duration_sum += end.duration_since(start)?.as_micros();
         }
         pl.done_with_count(args.repeats);
-        eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+        eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
         min_len_iter *= 10;
     }
 
@@ -90,7 +90,7 @@ pub fn main() -> Result<()> {
             duration_sum += end.duration_since(start)?.as_micros();
         }
         pl.done_with_count(args.repeats);
-        eprintln!("avg: {}µs of {} runs", duration_sum as f64 / args.repeats as f64, args.repeats);
+        eprintln!("avg: {}µs of {} runs\n", duration_sum as f64 / args.repeats as f64, args.repeats);
         block_size *= 10;
     }
 
