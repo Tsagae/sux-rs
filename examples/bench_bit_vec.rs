@@ -17,7 +17,7 @@ use sux::prelude::*;
 struct Args {
     #[arg(short, long, default_value = "1")]
     start_min_len_iter: usize,
-    #[arg(short, long, default_value = "100000")]
+    #[arg(short, long, default_value = "1000000000")]
     stop_min_len_iter: usize,
 
     #[arg(short, long, default_value = "100000")]
