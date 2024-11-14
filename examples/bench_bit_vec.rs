@@ -20,6 +20,11 @@ struct Args {
     #[arg(short, long, default_value = "1000000000")]
     stop_min_len_iter: usize,
 
+    #[arg(short, long, default_value = "1")]
+    start_chunk_size: usize,
+    #[arg(short, long, default_value = "1000000000")]
+    stop_chunk_size: usize,
+
     #[arg(short, long, default_value = "100000")]
     start_block_size: usize,
     #[arg(short, long, default_value = "1000000000")]
@@ -79,6 +84,20 @@ pub fn main() -> Result<()> {
         pl.done_with_count(args.repeats);
         info!("avg: {}µs of {} runs\n", duration, args.repeats);
         block_size *= 10;
+    }
+
+    info!("------------ testing chunk size ------------\n");
+
+    let mut chunk_size = args.start_chunk_size;
+    while chunk_size <= args.stop_chunk_size {
+        pl.start(format!("Testing chunk size: {chunk_size} fill"));
+        let duration = repeat(
+            || black_box(a.fill_chunks(true, chunk_size)),
+            args.repeats,
+        );
+        pl.done_with_count(args.repeats);
+        info!("avg: {}µs of {} runs\n", duration, args.repeats);
+        chunk_size *= 10;
     }
 
     let mut vec_size = 1;
