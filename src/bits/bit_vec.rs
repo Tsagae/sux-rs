@@ -334,9 +334,8 @@ impl<B: AsRef<[usize]> + AsMut<[usize]>> BitVec<B> {
         #[cfg(feature = "rayon")]
         {
             bits[..full_words]
-                .par_iter_mut()
-                .chunks(chunk_size)
-                .for_each(|mut v| v.iter_mut().for_each(|x| **x = word_value) );
+                .par_chunks_mut(chunk_size)
+                .for_each(|v| v.iter_mut().for_each(|x| *x = word_value) );
         }
 
         #[cfg(not(feature = "rayon"))]
