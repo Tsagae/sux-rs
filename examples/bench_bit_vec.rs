@@ -53,6 +53,8 @@ pub fn main() -> Result<()> {
     pl.done_with_count(args.repeats);
     info!("avg: {}µs of {} runs\n", duration, args.repeats);
 
+    info!("------------ testing min_len_iter ------------\n");
+
     let mut min_len_iter = args.start_min_len_iter;
     while min_len_iter <= args.stop_min_len_iter {
         pl.start(format!("Testing min_len: {min_len_iter} fill"));
@@ -64,6 +66,8 @@ pub fn main() -> Result<()> {
         info!("avg: {}µs of {} runs\n", duration, args.repeats);
         min_len_iter *= 10;
     }
+
+    info!("------------ testing block_size ------------\n");
 
     let mut block_size = args.start_block_size;
     while block_size <= args.stop_block_size {
