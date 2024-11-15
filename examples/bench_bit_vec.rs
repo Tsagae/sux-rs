@@ -14,15 +14,15 @@ use sux::prelude::*;
 #[derive(Parser, Debug)]
 #[command(about = "Benchmarks bit_vec", long_about = None)]
 struct Args {
-    #[arg(short, long, default_value = "1")]
+    #[arg(short, long, default_value = "10000")]
     start_min_len_iter: usize,
-    #[arg(short, long, default_value = "1000000000")]
+    #[arg(short, long, default_value = "100000")]
     stop_min_len_iter: usize,
 
+    #[arg(short, long, default_value = "10000")]
+    start_chunk_size: usize,
     #[arg(short, long, default_value = "100000")]
-    start_block_size: usize,
-    #[arg(short, long, default_value = "1000000000")]
-    stop_block_size: usize,
+    stop_chunk_size: usize,
 
     #[arg(short, long, default_value = "1")]
     start_len: usize,
@@ -40,7 +40,7 @@ pub fn main() -> Result<()> {
 
     let mut args = Args::parse();
     args.stop_min_len_iter = min(args.stop_min_len_iter, args.stop_len);
-    args.stop_block_size = min(args.stop_block_size, args.stop_len);
+    args.stop_chunk_size = min(args.stop_chunk_size, args.stop_len);
 
     use criterion::black_box;
     let mut c = Criterion::default()
@@ -73,6 +73,19 @@ pub fn main() -> Result<()> {
                 },
             );
             min_len_iter *= 10;
+        }
+
+        let mut chunk_size = args.start_chunk_size;
+        while chunk_size <= args.stop_chunk_size {
+            group.bench_with_input(
+                BenchmarkId::new(format!("chunk_size-{}", chunk_size), len),
+                &len,
+                |b, _| {
+                    let mut vec = BitVec::new(len);
+                    b.iter(|| black_box(vec.fill_chunks(black_box(true), black_box(chunk_size))));
+                },
+            );
+            chunk_size *= 10;
         }
 
         len *= 10;
