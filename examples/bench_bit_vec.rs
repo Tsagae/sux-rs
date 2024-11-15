@@ -71,21 +71,7 @@ pub fn main() -> Result<()> {
         info!("avg: {}µs of {} runs\n", duration, args.repeats);
         min_len_iter *= 10;
     }
-
-    info!("------------ testing block_size ------------\n");
-
-    let mut block_size = args.start_block_size;
-    while block_size <= args.stop_block_size {
-        pl.start(format!("Testing block size: {block_size} fill"));
-        let duration = repeat(
-            || black_box(a.fill_by_uniform_blocks(true, block_size)),
-            args.repeats,
-        );
-        pl.done_with_count(args.repeats);
-        info!("avg: {}µs of {} runs\n", duration, args.repeats);
-        block_size *= 10;
-    }
-
+    
     info!("------------ testing chunk size ------------\n");
 
     let mut chunk_size = args.start_chunk_size;
@@ -127,7 +113,7 @@ fn repeat(mut f: impl FnMut(), repeats: usize) -> f64 {
         let start = SystemTime::now();
         f();
         let end = SystemTime::now();
-        duration_sum += end.duration_since(start).unwrap().as_micros();
+        duration_sum += end.duration_since(start).unwrap().as_nanos();
     }
     duration_sum as f64 / repeats as f64
 }
