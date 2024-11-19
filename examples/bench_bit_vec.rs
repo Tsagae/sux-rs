@@ -24,7 +24,7 @@ struct Args {
     #[arg(short, long, default_value = "100000")]
     stop_chunk_size: usize,
 
-    #[arg(short, long, default_value = "1")]
+    #[arg(short, long, default_value = "10")]
     start_len: usize,
     #[arg(short, long, default_value = "1000000000")]
     stop_len: usize,
