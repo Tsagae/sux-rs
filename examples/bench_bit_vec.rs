@@ -31,6 +31,9 @@ struct Args {
 
     #[arg(short, long, default_value = "5")]
     duration: usize,
+
+    #[clap(long, short)]
+    log_scale: bool,
 }
 
 pub fn main() -> Result<()> {
@@ -47,9 +50,17 @@ pub fn main() -> Result<()> {
         .with_output_color(true)
         .measurement_time(Duration::from_secs(args.duration as u64));
     let mut group = c.benchmark_group("fill");
-    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
+    group.plot_config(
+        PlotConfiguration::default().summary_scale(if args.log_scale {
+            AxisScale::Logarithmic
+        } else {
+            AxisScale::Linear
+        }),
+    );
 
     let mut len = args.start_len;
+    let increments = [2, 5];
+    let mut outer_counter = 0;
     while len <= args.stop_len {
         group.bench_with_input(BenchmarkId::new("default", len), &len, |b, _| {
             let mut vec = BitVec::new(len);
@@ -60,6 +71,7 @@ pub fn main() -> Result<()> {
             b.iter(|| black_box(vec.fill_no_rayon(black_box(true))));
         });
 
+        let mut inner_counter = 0;
         let mut min_len_iter = args.start_min_len_iter;
         while min_len_iter <= args.stop_min_len_iter {
             group.bench_with_input(
@@ -72,9 +84,11 @@ pub fn main() -> Result<()> {
                     });
                 },
             );
-            min_len_iter *= 10;
+            min_len_iter *= increments[inner_counter % 2];
+            inner_counter += 1;
         }
 
+        let mut inner_counter = 0;
         let mut chunk_size = args.start_chunk_size;
         while chunk_size <= args.stop_chunk_size {
             group.bench_with_input(
@@ -85,10 +99,12 @@ pub fn main() -> Result<()> {
                     b.iter(|| black_box(vec.fill_chunks(black_box(true), black_box(chunk_size))));
                 },
             );
-            chunk_size *= 10;
+            chunk_size *= increments[inner_counter % 2];
+            inner_counter += 1;
         }
 
-        len *= 10;
+        len *= increments[outer_counter % 2];
+        outer_counter += 1;
     }
     group.finish();
     c.final_summary();
