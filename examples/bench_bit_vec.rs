@@ -33,7 +33,13 @@ struct Args {
     duration: usize,
 
     #[clap(long, short)]
+    exponential_increments: bool,
+
+    #[clap(long, short)]
     log_scale: bool,
+
+    #[arg(short, long, default_value = "10")]
+    increment_size: usize,
 }
 
 pub fn main() -> Result<()> {
@@ -44,6 +50,11 @@ pub fn main() -> Result<()> {
     let mut args = Args::parse();
     args.stop_min_len_iter = min(args.stop_min_len_iter, args.stop_len);
     args.stop_chunk_size = min(args.stop_chunk_size, args.stop_len);
+
+    let increment_func: Box<dyn Fn(usize) -> usize> = match args.exponential_increments {
+        true => Box::new(|val: usize| val * args.increment_size),
+        false => Box::new(|val: usize| val + args.increment_size),
+    };
 
     use criterion::black_box;
     let mut c = Criterion::default()
@@ -59,8 +70,6 @@ pub fn main() -> Result<()> {
     );
 
     let mut len = args.start_len;
-    let increments = [2, 5];
-    let mut outer_counter = 0;
     while len <= args.stop_len {
         group.bench_with_input(BenchmarkId::new("default", len), &len, |b, _| {
             let mut vec = BitVec::new(len);
@@ -71,7 +80,6 @@ pub fn main() -> Result<()> {
             b.iter(|| black_box(vec.fill_no_rayon(black_box(true))));
         });
 
-        let mut inner_counter = 0;
         let mut min_len_iter = args.start_min_len_iter;
         while min_len_iter <= args.stop_min_len_iter {
             group.bench_with_input(
@@ -84,11 +92,9 @@ pub fn main() -> Result<()> {
                     });
                 },
             );
-            min_len_iter *= increments[inner_counter % 2];
-            inner_counter += 1;
+            min_len_iter = increment_func(min_len_iter);
         }
 
-        let mut inner_counter = 0;
         let mut chunk_size = args.start_chunk_size;
         while chunk_size <= args.stop_chunk_size {
             group.bench_with_input(
@@ -99,13 +105,12 @@ pub fn main() -> Result<()> {
                     b.iter(|| black_box(vec.fill_chunks(black_box(true), black_box(chunk_size))));
                 },
             );
-            chunk_size *= increments[inner_counter % 2];
-            inner_counter += 1;
+            chunk_size = increment_func(chunk_size);
         }
 
-        len *= increments[outer_counter % 2];
-        outer_counter += 1;
+        len = increment_func(len);
     }
+
     group.finish();
     c.final_summary();
     Ok(())
