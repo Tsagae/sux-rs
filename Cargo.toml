@@ -84,6 +84,10 @@ name = "bench_bit_field_vec"
 required-features = ["cli"]
 
 [[example]]
+name = "bench_bit_vec"
+required-features = ["cli"]
+
+[[example]]
 name = "bench_rank9"
 required-features = ["cli"]
 
