@@ -74,8 +74,6 @@ use core::borrow::BorrowMut;
 use core::fmt;
 use epserde::*;
 use mem_dbg::*;
-#[cfg(feature = "rayon")]
-use rayon::prelude::*;
 use std::{
     ops::Index,
     sync::atomic::{AtomicUsize, Ordering},
@@ -254,17 +252,7 @@ impl<B: AsRef<[usize]> + AsMut<[usize]>> BitVec<B> {
         let bits = self.bits.as_mut();
         let word_value = if value { !0 } else { 0 };
 
-        #[cfg(feature = "rayon")]
-        {
-            bits[..full_words]
-                .par_iter_mut()
-                .for_each(|x| *x = word_value);
-        }
-
-        #[cfg(not(feature = "rayon"))]
-        {
-            bits[..full_words].iter_mut().for_each(|x| *x = word_value);
-        }
+        bits[..full_words].iter_mut().for_each(|x| *x = word_value);
 
         if residual != 0 {
             let mask = (1 << residual) - 1;
@@ -285,15 +273,7 @@ impl<B: AsRef<[usize]> + AsMut<[usize]>> BitVec<B> {
         let residual = self.len % BITS;
         let bits = self.bits.as_mut();
 
-        #[cfg(feature = "rayon")]
-        {
-            bits[..full_words].par_iter_mut().for_each(|x| *x = !*x);
-        }
-
-        #[cfg(not(feature = "rayon"))]
-        {
-            bits[..full_words].iter_mut().for_each(|x| *x = !*x);
-        }
+        bits[..full_words].iter_mut().for_each(|x| *x = !*x);
 
         if residual != 0 {
             let mask = (1 << residual) - 1;
@@ -392,21 +372,10 @@ impl<B: AsRef<[usize]>> BitCount for BitVec<B> {
         let bits = self.bits.as_ref();
         let mut num_ones;
 
-        #[cfg(feature = "rayon")]
-        {
-            num_ones = bits[..full_words]
-                .par_iter()
-                .map(|x| x.count_ones() as usize)
-                .sum();
-        }
-
-        #[cfg(not(feature = "rayon"))]
-        {
-            num_ones = bits[..full_words]
-                .iter()
-                .map(|x| x.count_ones() as usize)
-                .sum()
-        }
+        num_ones = bits[..full_words]
+            .iter()
+            .map(|x| x.count_ones() as usize)
+            .sum();
 
         if residual != 0 {
             num_ones += (self.as_ref()[full_words] << (BITS - residual)).count_ones() as usize
@@ -792,19 +761,10 @@ impl<B: AsRef<[AtomicUsize]>> AtomicBitVec<B> {
         // Just to be sure, add a fence to ensure that we will see all the final
         // values
         core::sync::atomic::fence(Ordering::SeqCst);
-        #[cfg(feature = "rayon")]
-        {
-            bits[..full_words]
-                .par_iter()
-                .for_each(|x| x.store(word_value, ordering));
-        }
 
-        #[cfg(not(feature = "rayon"))]
-        {
-            bits[..full_words]
-                .iter()
-                .for_each(|x| x.store(word_value, ordering));
-        }
+        bits[..full_words]
+            .iter()
+            .for_each(|x| x.store(word_value, ordering));
 
         if residual != 0 {
             let mask = (1 << residual) - 1;
@@ -831,19 +791,10 @@ impl<B: AsRef<[AtomicUsize]>> AtomicBitVec<B> {
         // Just to be sure, add a fence to ensure that we will see all the final
         // values
         core::sync::atomic::fence(Ordering::SeqCst);
-        #[cfg(feature = "rayon")]
-        {
-            bits[..full_words]
-                .par_iter()
-                .for_each(|x| _ = x.fetch_xor(!0, ordering));
-        }
 
-        #[cfg(not(feature = "rayon"))]
-        {
-            bits[..full_words]
-                .iter()
-                .for_each(|x| _ = x.fetch_xor(!0, ordering));
-        }
+        bits[..full_words]
+            .iter()
+            .for_each(|x| _ = x.fetch_xor(!0, ordering));
 
         if residual != 0 {
             let mask = (1 << residual) - 1;
@@ -906,21 +857,11 @@ impl<B: AsRef<[AtomicUsize]>> BitCount for AtomicBitVec<B> {
         // Just to be sure, add a fence to ensure that we will see all the final
         // values
         core::sync::atomic::fence(Ordering::SeqCst);
-        #[cfg(feature = "rayon")]
-        {
-            num_ones = bits[..full_words]
-                .par_iter()
-                .map(|x| x.load(Ordering::Relaxed).count_ones() as usize)
-                .sum();
-        }
 
-        #[cfg(not(feature = "rayon"))]
-        {
-            num_ones = bits[..full_words]
-                .iter()
-                .map(|x| x.load(Ordering::Relaxed).count_ones() as usize)
-                .sum();
-        }
+        num_ones = bits[..full_words]
+            .iter()
+            .map(|x| x.load(Ordering::Relaxed).count_ones() as usize)
+            .sum();
 
         if residual != 0 {
             num_ones += (bits[full_words].load(Ordering::Relaxed) << (BITS - residual)).count_ones()
